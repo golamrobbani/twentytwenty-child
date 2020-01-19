@@ -13,19 +13,20 @@ function prepare_rest($data, $post, $request){
     $cats = get_the_category($post->ID);
 
     //next/prev
-    
-    $nextPost = get_adjacent_post(false, '', true );
+    /*$nextPost = get_adjacent_post(false, '', true );
     $nextPost = $nextPost->ID;
-
     $prevPost = get_adjacent_post(false, '', false );
-    $prevPost = $prevPost->ID;
+    $prevPost = $prevPost->ID;*/
 
     //$_data['fi_300x180'] = $thumbnail300x180[0];
-    $_data['fi_medium'] = $thumbnailMedium[0];
-    $_data['full'] = $full[0];
+    $_data['f_image_medium'] = $thumbnailMedium[0];
+    $_data['f_image_full'] = $full[0];
     $_data['cats'] = $cats;
-    $_data['next_post'] = $nextPost;
-    $_data['previous_post'] = $prevPost;
+
+    /*$_data['next_post'] = $nextPost;
+    $_data['previous_post'] = $prevPost;*/
+
+
     $data->data = $_data;
 
     return $data;
