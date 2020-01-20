@@ -15,8 +15,6 @@ function prepare_rest($data, $post, $request){
     //comment number
     $t_coments_num=get_comments_number($post->ID);
 
-    var_dump($t_coments_num);
-
     //next/prev
     /*$nextPost = get_adjacent_post(false, '', true );
     $nextPost = $nextPost->ID;

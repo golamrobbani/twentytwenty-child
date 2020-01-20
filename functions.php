@@ -13,6 +13,14 @@ function twentytwenty_child_enqueue_styles() {
 }
 
 
+// function add_cors_http_header(){
+//     header("Access-Control-Allow-Origin: *");
+// }
+// add_action('init','add_cors_http_header');
+
+
+
+
 /* Add custom thumbnail sizes */
 // if ( function_exists( 'add_image_size' ) ) {
 //     add_image_size( '590x390', 590, 390, true );
