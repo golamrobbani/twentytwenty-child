@@ -15,6 +15,12 @@ function prepare_rest($data, $post, $request){
     //Tags
     $tags = get_the_tags($post->ID);
 
+    //Author
+
+    $author = get_the_author($post->ID);
+
+
+
     //comment number
     $t_comment_num=get_comments_number($post->ID);
 
@@ -30,6 +36,7 @@ function prepare_rest($data, $post, $request){
     $_data['cats'] = $cats;
     $_data['tags']= $tags;
     $_data['t_comment_num']=$t_comment_num;
+    $_data['author_name']=$author;
 
 
     /*$_data['next_post'] = $nextPost;
