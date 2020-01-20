@@ -13,7 +13,7 @@ function prepare_rest($data, $post, $request){
     $cats = get_the_category($post->ID);
 
     //comment number
-    $t_coments_num=get_comments_number($post->ID);
+    $t_comment_num=get_comments_number($post->ID);
 
     //next/prev
     /*$nextPost = get_adjacent_post(false, '', true );
@@ -25,7 +25,7 @@ function prepare_rest($data, $post, $request){
     $_data['f_image_medium'] = $thumbnailMedium[0];
     $_data['f_image_full'] = $full[0];
     $_data['cats'] = $cats;
-    $_data['t_coments_num']=$t_coments_num;
+    $_data['t_comment_num']=$t_comment_num;
 
     /*$_data['next_post'] = $nextPost;
     $_data['previous_post'] = $prevPost;*/
