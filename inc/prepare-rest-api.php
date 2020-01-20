@@ -12,6 +12,9 @@ function prepare_rest($data, $post, $request){
     //Categories
     $cats = get_the_category($post->ID);
 
+    //Tags
+    $tags = get_the_tags($post->ID);
+
     //comment number
     $t_comment_num=get_comments_number($post->ID);
 
@@ -25,7 +28,9 @@ function prepare_rest($data, $post, $request){
     $_data['f_image_medium'] = $thumbnailMedium[0];
     $_data['f_image_full'] = $full[0];
     $_data['cats'] = $cats;
+    $_data['tags']= $tags;
     $_data['t_comment_num']=$t_comment_num;
+
 
     /*$_data['next_post'] = $nextPost;
     $_data['previous_post'] = $prevPost;*/
