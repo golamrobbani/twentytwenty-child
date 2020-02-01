@@ -27,9 +27,17 @@ function twentytwenty_child_enqueue_styles() {
 // }
 
 
+//custom-route-endpoints
+require_once(get_stylesheet_directory().'/inc/custom-route-endpoints.php');
+
+$grcr=new Gr_Custom_Route();
+
+
 /*add extra file*/
 require_once(get_stylesheet_directory() . '/inc/extras.php');
 
+//custom metabox
+require_once(get_stylesheet_directory() . '/inc/custom-metabox.php');
 
 /*add prepare-rest-api file*/
 require_once(get_stylesheet_directory() . '/inc/prepare-rest-api.php');
