@@ -2,6 +2,10 @@
  
 class Gr_Custom_Route extends WP_REST_Controller {
 
+
+protected $parent_type = null;
+
+
   public function __construct() {
     add_action( 'rest_api_init', array( $this, 'register_routes' ) );
     
@@ -13,8 +17,8 @@ class Gr_Custom_Route extends WP_REST_Controller {
    */
   public function register_routes() {
     $version = '1';
-    $namespace = 'vendor/v' . $version;
-    $base = 'route';
+    $namespace = 'gr/v' . $version;
+    $base = 'cmeta';
     register_rest_route( $namespace, '/' . $base, array(
       array(
         'methods'             => WP_REST_Server::READABLE,
@@ -31,7 +35,7 @@ class Gr_Custom_Route extends WP_REST_Controller {
         'args'                => $this->get_endpoint_args_for_item_schema( true ),
       ),
     ) );
-    register_rest_route( $namespace, '/' . $base . '/(?P<id>[\d]+)', array(
+    register_rest_route( $namespace, '/' . $base .'/(?P<parent_id>[\d]+)'. '/(?P<id>[\d]+)', array(
       array(
         'methods'             => WP_REST_Server::READABLE,
         'callback'            => array( $this, 'get_item' ),
@@ -63,6 +67,41 @@ class Gr_Custom_Route extends WP_REST_Controller {
       'methods'  => WP_REST_Server::READABLE,
       'callback' => array( $this, 'get_public_item_schema' ),
     ) );
+  }
+
+
+  /**
+   * Get the meta ID column for the relevant table.
+   *
+   * @return string
+   */
+  protected function get_id_column() {
+    return ( 'user' === 'post' ) ? 'umeta_id' : 'meta_id';
+  }
+/**
+   * Get the object (parent) ID column for the relevant table.
+   *
+   * @return string
+   */
+  protected function get_parent_column() {
+    return ( 'user' === 'post' ) ? 'user_id' : 'post_id';
+  }
+
+  /**
+   * Check if the data provided is valid data.
+   *
+   * Excludes serialized data from being sent via the API.
+   *
+   * @see https://github.com/WP-API/WP-API/pull/68
+   * @param mixed $data Data to be checked
+   * @return boolean Whether the data is valid or not
+   */
+  protected function is_valid_meta_data( $data ) {
+    if ( is_array( $data ) || is_object( $data ) || is_serialized( $data ) ) {
+      return false;
+    }
+
+    return true;
   }
  
 
@@ -235,7 +274,57 @@ class Gr_Custom_Route extends WP_REST_Controller {
    * @return WP_Error|object $prepared_item
    */
   protected function prepare_item_for_database( $request ) {
-    return array();
+
+   //var_dump($request);
+
+    $parent_id = (int) $request['parent_id'];
+    $mid = (int) $request['id'];
+    
+    $force = isset( $request['force'] ) ? (bool) $request['force'] : false;
+
+    // We don't support trashing for this type, error out
+    if ( ! $force ) {
+      return new WP_Error( 'rest_trash_not_supported', __( 'Meta does not support trashing.' ), array( 'status' => 501 ) );
+    }
+
+    $parent_column = $this->get_parent_column();
+    $current = get_metadata_by_mid( 'post', $mid );
+
+    //var_dump($current);
+
+    if ( empty( $current ) ) {
+      return new WP_Error( 'rest_meta_invalid_id', __( 'Invalid meta id.' ), array( 'status' => 404 ) );
+    }
+
+    if ( absint( $current->$parent_column ) !== (int) $parent_id ) {
+      return new WP_Error( 'rest_meta_' . 'post' . '_mismatch', __( 'Meta does not belong to this object' ), array( 'status' => 400 ) );
+    }
+
+    // for now let's not allow updating of arrays, objects or serialized values.
+    if ( ! $this->is_valid_meta_data( $current->meta_value ) ) {
+      $code = ( 'post' === 'post' ) ? 'rest_post_invalid_action' : 'rest_meta_invalid_action';
+      return new WP_Error( $code, __( 'Invalid existing meta data for action.' ), array( 'status' => 400 ) );
+    }
+
+    if ( is_protected_meta( $current->meta_key ) ) {
+      return new WP_Error( 'rest_meta_protected', sprintf( __( '%s is marked as a protected field.' ), $current->meta_key ), array( 'status' => 403 ) );
+    }
+
+    if ( ! delete_metadata_by_mid( 'post', $mid ) ) {
+      return new WP_Error( 'rest_meta_could_not_delete', __( 'Could not delete meta.' ), array( 'status' => 500 ) );
+    }
+
+    /**
+     * Fires after a meta value is deleted via the REST API.
+     *
+     * @param WP_REST_Request $request The request sent to the API.
+     */
+    do_action( 'rest_delete_meta', $request );
+
+    return rest_ensure_response( array( 'message' => __( 'Deleted meta' ) ) );
+  
+
+    //return array();
   }
  
   /**
@@ -248,7 +337,7 @@ class Gr_Custom_Route extends WP_REST_Controller {
   public function prepare_item_for_response( $item, $request ) {
 
    global $wpdb;
-   $pid=$request['id'];
+   $pid=$request['parent_id'];
    $querystr = "
    SELECT *
    FROM $wpdb->postmeta 
